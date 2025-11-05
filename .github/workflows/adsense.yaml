@@ -1,0 +1,73 @@
+name: Google Adsense Script & ads.txt v.2
+on:
+  push:
+    paths:
+      - '**.html'  # Only HTML files
+    types:
+      - created    # Only when new files are added
+  workflow_dispatch:    # Allows manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  update_adsense:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Remove adsense.go if it exists
+        run: |
+          if [ -f "adsense.go" ]; then
+            rm adsense.go
+            echo "Removed adsense.go"
+          fi
+
+      - name: Update or create ads.txt
+        run: |
+          echo "google.com, pub-3534718780470570, DIRECT, f08c47fec0942fa0" > ads.txt
+          echo "Created/Updated ads.txt file"
+
+      - name: Update HTML files with Adsense script
+        run: |
+          ADSENSE_SCRIPT='<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3534718780470570" crossorigin="anonymous"></script>'
+          
+          # Find all HTML files
+          find . -type f -name "*.html" | while read -r file; do
+            echo "Processing: $file"
+            
+            # Create a temporary file
+            temp_file=$(mktemp)
+            
+            # Check if file contains any adsense script
+            if grep -q "pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" "$file"; then
+              # Replace existing adsense script
+              sed "/.*pagead2.googlesyndication.com\/pagead\/js\/adsbygoogle.js.*/c\\$ADSENSE_SCRIPT" "$file" > "$temp_file"
+            else
+              # Insert new adsense script before </head>
+              sed "/<\/head>/i\\$ADSENSE_SCRIPT" "$file" > "$temp_file"
+            fi
+            
+            # Replace original file with modified content
+            mv "$temp_file" "$file"
+          done
+
+      - name: Check for changes
+        id: git_changes
+        run: |
+          if git diff --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if there are changes
+        if: steps.git_changes.outputs.changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Update Google Adsense script and ads.txt"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
+          git push
