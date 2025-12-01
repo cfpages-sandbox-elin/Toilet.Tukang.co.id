@@ -2,7 +2,7 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
 		<loc>/</loc>
-		<lastmod>2025-10-28T09:47:16+00:00</lastmod>
+		<lastmod>2025-12-01T01:48:30+00:00</lastmod>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/tentang-kami-1.jpeg</image:loc>
 		</image:image>
@@ -41,6 +41,101 @@
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/01/Andi-Prasetyo.jpg</image:loc>
+		</image:image>
+	</url>
+	<url>
+		<loc>/urinoir</loc>
+		<lastmod>2025-12-01T01:46:31+00:00</lastmod>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-2.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-3.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-4.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-5.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-6.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-7.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-standar.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/urinoir-type-1.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Phenolic-Board-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-PVC-Board-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-WPC-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Akrilik-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-HPL-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
+		</image:image>
+	</url>
+	<url>
+		<loc>/shower-box</loc>
+		<lastmod>2025-12-01T01:46:02+00:00</lastmod>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Square.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Line.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Clear.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Fabric.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-4.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
@@ -739,101 +834,6 @@
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Phenolic-Board-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-PVC-Board-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-WPC-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Akrilik-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-HPL-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
-		</image:image>
-	</url>
-	<url>
-		<loc>/shower-box</loc>
-		<lastmod>2025-10-30T23:14:59+00:00</lastmod>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Square.png</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Line.png</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Clear.png</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Fabric.png</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-4.jpeg</image:loc>
-		</image:image>
-	</url>
-	<url>
-		<loc>/urinoir</loc>
-		<lastmod>2025-10-30T22:53:50+00:00</lastmod>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-2.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-3.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-4.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-5.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-6.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-7.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-standar.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/urinoir-type-1.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-1.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
