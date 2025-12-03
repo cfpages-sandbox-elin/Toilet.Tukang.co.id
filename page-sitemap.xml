@@ -2,12 +2,12 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
 		<loc>/</loc>
-		<lastmod>2025-12-01T01:48:30+00:00</lastmod>
+		<lastmod>2025-12-02T11:13:44+00:00</lastmod>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/tentang-kami-1.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/tentang-kami-toilet.tukang.co_.id-2.jpeg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/tentang-kami-2.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/tentang-kami-toilet.tukang.co_.id-1.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
@@ -31,7 +31,7 @@
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Tukang-Professional.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Urinoir-Toilet-1.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/01/Budi-Santoso.jpg</image:loc>
@@ -44,13 +44,17 @@
 		</image:image>
 	</url>
 	<url>
+		<loc>/kontak-kami</loc>
+		<lastmod>2025-12-03T04:37:33+00:00</lastmod>
+	</url>
+	<url>
 		<loc>/urinoir</loc>
-		<lastmod>2025-12-01T01:46:31+00:00</lastmod>
+		<lastmod>2025-12-02T11:41:58+00:00</lastmod>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Urinoir-Toilet-1.jpeg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-1.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Urinoir-Toilet-3.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/urinoir-type-2.jpg</image:loc>
@@ -109,12 +113,12 @@
 	</url>
 	<url>
 		<loc>/shower-box</loc>
-		<lastmod>2025-12-01T01:46:02+00:00</lastmod>
+		<lastmod>2025-12-02T11:37:40+00:00</lastmod>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Urinoir-2.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Kaca-Shower.jpeg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Kaca-Shower-2.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Shower-Box-Square.png</image:loc>
@@ -136,6 +140,180 @@
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-4.jpeg</image:loc>
+		</image:image>
+	</url>
+	<url>
+		<loc>/portable/couple</loc>
+		<lastmod>2025-12-02T11:35:14+00:00</lastmod>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-DOORSTOP.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-HEAD-RAIL.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-U-CHANNEL.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-COAT-HOOK.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-DOOR-LOCK.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-DOOR-SLOTS.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-GRAVITY-HINGE.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-HANDLE.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-LEG.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-SHOE-BOX.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ADJUSTABLE-LEG.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-DOOR-JAMB.jpg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-dengan-Wastafel.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Duduk-Jongkok-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Standar.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-dengan-Wastafel.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Standar.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Duduk-Jongkok-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Deluxe-AC-Lighting.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-VIP.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
+		</image:image>
+	</url>
+	<url>
+		<loc>/cubicle</loc>
+		<lastmod>2025-12-02T11:33:14+00:00</lastmod>
+		<image:image>
+			<image:loc>/wp-content/uploads/elementor/thumbs/Toilet-Partisi-Cubicle-Murah-Berkualitas-3-rfk9f76iwagljz0pxo0t8ud7ixu6c4cwyzonvy16bk.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Partisi-Cubicle-Murah-Berkualitas-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Bandara-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Kapal-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Hotel-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Sekolah-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Kantor-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Stasiun-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Phenolic-Board-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-PVC-Board-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-WPC-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Akrilik-4.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-HPL-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
+		</image:image>
+	</url>
+	<url>
+		<loc>/tentang-kami</loc>
+		<lastmod>2025-12-02T11:25:17+00:00</lastmod>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Portable-Toilet.Tukang.co_.id-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/01/logo-tukang.co_.id-favicon.png</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Container-Toilet.Tukang.co_.id-6.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Portable-Toilet.Tukang.co_.id-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Pasang-Partisi-Urinoir-Toilet-3.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Container-Toilet.Tukang.co_.id-5.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Partisi-Cubicle-Murah-Berkualitas-2.jpeg</image:loc>
+		</image:image>
+		<image:image>
+			<image:loc>/wp-content/uploads/2025/12/Toilet-Portable-Toilet.Tukang.co_.id-1.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
@@ -354,85 +532,6 @@
 		<lastmod>2025-11-04T11:13:15+00:00</lastmod>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-DOORSTOP.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-HEAD-RAIL.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-U-CHANNEL.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-COAT-HOOK.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-DOOR-LOCK.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-DOOR-SLOTS.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-GRAVITY-HINGE.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-HANDLE.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-LEG.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-SHOE-BOX.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ADJUSTABLE-LEG.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-DOOR-JAMB.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-dengan-Wastafel.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Duduk-Jongkok-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Standar.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-dengan-Wastafel.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Standar.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Duduk-Jongkok-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Deluxe-AC-Lighting.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-VIP.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
-		</image:image>
-	</url>
-	<url>
-		<loc>/portable/couple</loc>
-		<lastmod>2025-11-04T07:26:29+00:00</lastmod>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Couple.jpeg</image:loc>
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/11/AKSESORIS-TOILET-CUBICLE-ALUMINIUM-DOORSTOP.jpg</image:loc>
@@ -788,73 +887,6 @@
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Toilet-Portable-Proyek.jpeg</image:loc>
-		</image:image>
-	</url>
-	<url>
-		<loc>/cubicle</loc>
-		<lastmod>2025-10-30T23:15:30+00:00</lastmod>
-		<image:image>
-			<image:loc>/wp-content/uploads/elementor/thumbs/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-5-rdt92pccxred13g1vgvmjl2bh40y7tuod2cdesv2v4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Bandara-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Kapal-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Hotel-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Sekolah-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Kantor-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Cubicle-Stasiun-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Cubicle-Toilet-Partisi-Toilet-Umum-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-2.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Kaca-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Phenolic-Board-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-PVC-Board-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-WPC-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-Akrilik-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-HPL-3.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
@@ -1494,38 +1526,6 @@
 		</image:image>
 		<image:image>
 			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Partisi-Toilet-GRC-4.jpeg</image:loc>
-		</image:image>
-	</url>
-	<url>
-		<loc>/kontak-kami</loc>
-		<lastmod>2025-10-27T14:03:58+00:00</lastmod>
-	</url>
-	<url>
-		<loc>/tentang-kami</loc>
-		<lastmod>2025-10-27T11:55:43+00:00</lastmod>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Toilet-Tukang-Professional.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/01/logo-tukang.co_.id-favicon.png</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Movable-Toilet-Container-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Instalasi-Toilet-Cubicle-partisi-pemasangan-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Toilet-Portable-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Toilet-Portable-4.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-1.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>/wp-content/uploads/2025/10/Jual-Pasang-Shower-Box-3.jpeg</image:loc>
 		</image:image>
 	</url>
 </urlset>
