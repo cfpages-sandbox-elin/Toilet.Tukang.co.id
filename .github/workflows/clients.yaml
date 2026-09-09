@@ -1,0 +1,69 @@
+name: Update Multiple Clients
+
+on:
+  push:
+    paths:
+      - .clients
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Preview changes without writing or committing
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: clients-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUMMARY_PATH: ${{ runner.temp }}/clients-summary.json
+      CHANGED_PATHS: ${{ runner.temp }}/clients-changed-paths
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.ref_type != 'branch' || inputs.dry_run != false) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.x"
+      - name: Run regression tests
+        run: python -B .github/scripts/test_update_clients.py
+      - name: Plan update clients
+        id: update
+        run: |
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          python -B .github/scripts/update_clients.py \
+            --repo-root . \
+            --clients .clients \
+            --summary "$SUMMARY_PATH" \
+            --paths-file "$CHANGED_PATHS" \
+            --github-output "$GITHUB_OUTPUT" \
+            "${args[@]}"
+      - name: Verify exact Git scope
+        if: steps.update.outputs.changed == 'true' && env.DRY_RUN == 'false'
+        run: |
+          python -B .github/scripts/update_clients.py \
+            --repo-root . \
+            --paths-file "$CHANGED_PATHS" \
+            --verify-git
+      - name: Commit and push exact changed paths
+        if: steps.update.outputs.changed == 'true' && env.DRY_RUN == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --literal-pathspecs --pathspec-from-file="$CHANGED_PATHS" --pathspec-file-nul
+          git commit --quiet -m "Update clients (${GITHUB_REF_NAME})"
+          git push
