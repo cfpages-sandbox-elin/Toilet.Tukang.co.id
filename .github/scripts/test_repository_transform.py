@@ -16,6 +16,12 @@ SCRIPT = (
     if ADJACENT_SCRIPT.exists()
     else Path(__file__).resolve().parents[1] / "canonical" / "scripts" / "repository_transform.py"
 )
+ADJACENT_WORKFLOW = Path(__file__).resolve().parent.parent / "workflows" / "replace.yaml"
+WORKFLOW = (
+    ADJACENT_WORKFLOW
+    if ADJACENT_WORKFLOW.exists()
+    else Path(__file__).resolve().parents[1] / "canonical" / "repository-search-and-replace.yml"
+)
 SPEC = importlib.util.spec_from_file_location("repository_transform", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
@@ -160,6 +166,14 @@ class ExactTests(unittest.TestCase):
                     "include": ["**/*.html"],
                     "replacements": [{"search": "x", "replace": "y", "expected": 0}],
                 })
+
+
+class WorkflowTests(unittest.TestCase):
+    def test_exact_mode_skips_legacy_whitespace_gate(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("TRANSFORM_MODE: ${{ inputs.mode }}", workflow)
+        self.assertIn('if [[ "$TRANSFORM_MODE" != "exact" ]]; then', workflow)
+        self.assertIn("git diff --cached --check", workflow)
 
 
 if __name__ == "__main__":

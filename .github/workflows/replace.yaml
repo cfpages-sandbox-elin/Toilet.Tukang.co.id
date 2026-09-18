@@ -102,10 +102,13 @@ jobs:
       - name: Stage only verified paths
         if: steps.transform.outputs.changed == 'true'
         env:
+          TRANSFORM_MODE: ${{ inputs.mode }}
           TRANSFORM_PATHS_FILE: ${{ runner.temp }}/repository-transform-paths.nul
         run: |
           git add --pathspec-from-file="$TRANSFORM_PATHS_FILE" --pathspec-file-nul
-          git diff --cached --check
+          if [[ "$TRANSFORM_MODE" != "exact" ]]; then
+            git diff --cached --check
+          fi
 
       - name: Verify exact staged boundary
         if: steps.transform.outputs.changed == 'true'
