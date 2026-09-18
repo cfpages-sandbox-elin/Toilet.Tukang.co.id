@@ -25,6 +25,7 @@ class Filter:
     clauses: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]
     simple: tuple[str, ...] = ()
     basename: tuple[str, ...] = ()
+    page: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,7 @@ class Client:
 FILTER_ATOM = r"-?[a-z0-9][a-z0-9._-]*"
 SIMPLE_FILTER_RE = re.compile(rf"{FILTER_ATOM}(?:,{FILTER_ATOM})*\Z")
 BASENAME_FILTER_RE = re.compile(rf"basename:{FILTER_ATOM}(?:,{FILTER_ATOM})*\Z")
+PAGE_FILTER_RE = re.compile(rf"page:{FILTER_ATOM}(?:,{FILTER_ATOM})*\Z")
 CATEGORY_FILTER_RE = re.compile(
     rf"{FILTER_ATOM}(?:,{FILTER_ATOM})*:{FILTER_ATOM}(?:,{FILTER_ATOM})*"
     rf"(?:;{FILTER_ATOM}(?:,{FILTER_ATOM})*:{FILTER_ATOM}(?:,{FILTER_ATOM})*)*\Z"
@@ -124,6 +126,8 @@ def _phone(value: str) -> bool:
 
 def _parse_filter(value: str) -> Filter | None:
     lower = value.casefold()
+    if PAGE_FILTER_RE.fullmatch(lower):
+        return Filter((), (), (), tuple(lower.removeprefix("page:").split(",")))
     if BASENAME_FILTER_RE.fullmatch(lower):
         return Filter((), (), tuple(lower.removeprefix("basename:").split(",")))
     if CATEGORY_FILTER_RE.fullmatch(lower):
@@ -224,6 +228,18 @@ def _terms_match(terms: tuple[str, ...], path: str) -> bool:
 
 def _filter_matches(rule: Filter, path: str) -> bool:
     path = _filter_path(path)
+    if rule.page:
+        filename = path.rsplit("/", 1)[-1]
+        candidates = [filename]
+        if filename == "index.html" and "/" in path:
+            candidates.extend(path.rsplit("/", 1)[0].split("/"))
+        negatives = tuple(term[1:] for term in rule.page if term.startswith("-"))
+        if any(term in candidate for term in negatives for candidate in candidates):
+            return False
+        positives = tuple(term for term in rule.page if not term.startswith("-"))
+        return not positives or any(
+            term in candidate for term in positives for candidate in candidates
+        )
     if rule.basename:
         return _terms_match(rule.basename, path.rsplit("/", 1)[-1])
     if rule.simple:
@@ -434,6 +450,37 @@ def _relative(path: Path, root: Path) -> str:
         raise ClientsError("path escaped repository root") from None
 
 
+def _changed_clients(
+    root: Path, current: list[Client], previous: list[Client]
+) -> set[Client]:
+    previous_by_contact: dict[Client, list[Client]] = {}
+    for client in previous:
+        previous_by_contact.setdefault(
+            replace(client, row=0, filter=None), []
+        ).append(client)
+    html_paths = [
+        _relative(path.resolve(), root.resolve()) for path in _html_paths(root.resolve())
+    ]
+    changed: set[Client] = set()
+    for client in current:
+        prior = previous_by_contact.get(replace(client, row=0, filter=None), [])
+        if not prior:
+            changed.add(client)
+            continue
+        if replace(client, row=0) in {replace(item, row=0) for item in prior}:
+            continue
+        if any(
+            (client.filter is None or _filter_matches(client.filter, path))
+            and not any(
+                item.filter is None or _filter_matches(item.filter, path)
+                for item in prior
+            )
+            for path in html_paths
+        ):
+            changed.add(client)
+    return changed
+
+
 def update(
     root: Path,
     clients_path: Path,
@@ -564,15 +611,9 @@ def main(argv: list[str] | None = None) -> int:
         clients = args.clients if args.clients.is_absolute() else root / args.clients
         only_clients = None
         if args.previous_clients is not None:
-            previous = {
-                replace(client, row=0, filter=None)
-                for client in parse_clients(args.previous_clients)
-            }
-            only_clients = {
-                client
-                for client in parse_clients(clients)
-                if replace(client, row=0, filter=None) not in previous
-            }
+            current_clients = parse_clients(clients)
+            previous_clients = parse_clients(args.previous_clients)
+            only_clients = _changed_clients(root, current_clients, previous_clients)
         summary = update(root, clients, args.dry_run, only_clients)
         _write_outputs(summary, args.summary, args.paths_file)
         if args.github_output is not None:
