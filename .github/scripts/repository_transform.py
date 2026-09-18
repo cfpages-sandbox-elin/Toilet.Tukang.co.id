@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 from typing import Any
+from urllib.parse import urlsplit
 
 
 class TransformError(RuntimeError):
@@ -369,6 +370,384 @@ def _expected_exact(value: Any, label: str) -> int:
     return value
 
 
+class ElementSpanParser(HTMLParser):
+    def __init__(self, text: str):
+        super().__init__(convert_charrefs=True)
+        self.line_offsets = [0]
+        for match in re.finditer(r"\n", text):
+            self.line_offsets.append(match.end())
+        self.stack: list[dict[str, Any]] = []
+        self.elements: list[dict[str, Any]] = []
+        self.title_parts: list[str] = []
+        self.meta: list[dict[str, str]] = []
+
+    def absolute(self) -> int:
+        line, column = self.getpos()
+        return self.line_offsets[line - 1] + column
+
+    @staticmethod
+    def attributes(attrs: list[tuple[str, str | None]]) -> dict[str, str]:
+        values: dict[str, str] = {}
+        for key, value in attrs:
+            lowered = key.lower()
+            if lowered in values:
+                raise TransformError(f"duplicate HTML attribute: {lowered}")
+            values[lowered] = value or ""
+        return values
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        lower = tag.lower()
+        start = self.absolute()
+        raw = self.get_starttag_text()
+        values = self.attributes(attrs)
+        frame = {
+            "tag": lower,
+            "start": start,
+            "start_tag_end": start + len(raw),
+            "raw_tag": raw,
+            "attrs": values,
+            "classes": set(values.get("class", "").split()),
+        }
+        if lower == "meta":
+            self.meta.append(values)
+        if lower in VOID_ELEMENTS:
+            frame["end_tag_start"] = frame["start_tag_end"]
+            frame["end"] = frame["start_tag_end"]
+            self.elements.append(frame)
+        else:
+            self.stack.append(frame)
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.handle_starttag(tag, attrs)
+
+    def handle_endtag(self, tag: str) -> None:
+        lower = tag.lower()
+        if not self.stack or self.stack[-1]["tag"] != lower:
+            raise TransformError(f"malformed HTML nesting at closing {lower}")
+        frame = self.stack.pop()
+        frame["end_tag_start"] = self.absolute()
+        frame["end"] = self.absolute() + len(f"</{lower}>")
+        self.elements.append(frame)
+
+    def handle_data(self, data: str) -> None:
+        if any(frame["tag"] == "title" for frame in self.stack):
+            self.title_parts.append(data)
+
+    def close(self) -> None:
+        super().close()
+        if self.stack:
+            raise TransformError(f"unclosed HTML element: {self.stack[-1]['tag']}")
+
+
+def parse_html(text: str) -> ElementSpanParser:
+    parser = ElementSpanParser(text)
+    try:
+        parser.feed(text)
+        parser.close()
+    except TransformError:
+        raise
+    except Exception as exc:
+        raise TransformError(f"HTML parsing failed: {exc}") from exc
+    return parser
+
+
+def one_element(
+    elements: list[dict[str, Any]],
+    *,
+    tag: str,
+    class_name: str,
+    label: str,
+) -> dict[str, Any]:
+    matches = [
+        element
+        for element in elements
+        if element["tag"] == tag and class_name in element["classes"]
+    ]
+    if len(matches) != 1:
+        raise TransformError(f"{label} requires exactly one {tag}.{class_name}; found {len(matches)}")
+    return matches[0]
+
+
+def destination_routes(relative_path: str) -> set[str]:
+    path = PurePosixPath(relative_path)
+    routes = {f"/{relative_path}"}
+    if path.name == "index.html":
+        parent = path.parent.as_posix()
+        routes.add("/" if parent == "." else f"/{parent}/")
+        if parent != ".":
+            routes.add(f"/{parent}")
+    elif path.suffix == ".html":
+        routes.add(f"/{path.with_suffix('').as_posix()}")
+    return routes
+
+
+def destination_metadata(
+    path: Path,
+    root: Path,
+    *,
+    title_suffix: str,
+    allowed_image_hosts: set[str],
+) -> dict[str, str]:
+    text, _, _ = read_utf8(path)
+    titles = re.findall(r"(?is)<title\b[^>]*>(.*?)</title\s*>", text)
+    if len(titles) != 1 or "<" in titles[0]:
+        raise TransformError(f"destination requires exactly one plain title: {path.relative_to(root)}")
+    page_title = " ".join(html.unescape(titles[0]).split())
+    if not page_title:
+        raise TransformError(f"destination has no title: {path.relative_to(root)}")
+    if title_suffix and not page_title.endswith(title_suffix):
+        raise TransformError(f"destination title suffix mismatch: {path.relative_to(root)}")
+    card_title = page_title[:-len(title_suffix)].rstrip() if title_suffix else page_title
+    descriptions: list[str] = []
+    images: list[str] = []
+    for tag in re.findall(r"(?is)<meta\b[^>]*>", text):
+        name = (_attribute_value(tag, "name") or "").lower()
+        property_name = (_attribute_value(tag, "property") or "").lower()
+        content = html.unescape(_attribute_value(tag, "content") or "").strip()
+        if name == "description" and content:
+            descriptions.append(content)
+        if property_name == "og:image" and content:
+            images.append(content)
+    if len(descriptions) != 1:
+        raise TransformError(
+            f"destination requires exactly one meta description: {path.relative_to(root)}"
+        )
+    if len(images) != 1:
+        raise TransformError(f"destination requires exactly one og:image: {path.relative_to(root)}")
+    image_url = images[0]
+    image = urlsplit(image_url)
+    if image.scheme != "https" or not image.netloc:
+        raise TransformError(f"destination og:image must be absolute HTTPS: {path.relative_to(root)}")
+    if allowed_image_hosts and image.hostname not in allowed_image_hosts:
+        raise TransformError(f"destination og:image host is not allowed: {path.relative_to(root)}")
+    return {
+        "source_path": path.relative_to(root).as_posix(),
+        "page_title": page_title,
+        "card_title": card_title,
+        "description": descriptions[0],
+        "image_url": image_url,
+    }
+
+
+def markdown_inventory(rows: list[dict[str, str]]) -> str:
+    def cell(value: str) -> str:
+        return value.replace("|", r"\|").replace("\r", " ").replace("\n", " ")
+
+    lines = [
+        "# Destination card metadata",
+        "",
+        "| Route | Source path | Card title | Meta description | Featured image |",
+        "|---|---|---|---|---|",
+    ]
+    lines.extend(
+        "| {route} | {source_path} | {card_title} | {description} | {image_url} |".format(
+            **{key: cell(value) for key, value in row.items()}
+        )
+        for row in rows
+    )
+    return "\n".join(lines) + "\n"
+
+
+def transform_metadata_cards_repository(
+    root: Path,
+    spec: dict[str, Any],
+) -> tuple[list[tuple[Path, bytes]], dict[str, Any], list[dict[str, str]]]:
+    landing_paths = _string_list(spec.get("landing_pages"), "landing_pages")
+    destination_spec = spec.get("destinations")
+    card_spec = spec.get("card")
+    expected = spec.get("expected")
+    if not isinstance(destination_spec, dict) or not isinstance(card_spec, dict):
+        raise TransformError("metadata-cards requires destinations and card objects")
+    if not isinstance(expected, dict):
+        raise TransformError("metadata-cards requires expected object")
+    destination_includes = _string_list(destination_spec.get("include"), "destinations.include")
+    destination_excludes = _string_list(
+        destination_spec.get("exclude", [".git/**", ".github/**", "node_modules/**"]),
+        "destinations.exclude",
+    )
+    title_suffix = destination_spec.get("title_suffix", "")
+    allowed_image_hosts = set(
+        _string_list(destination_spec.get("allowed_image_hosts", []), "destinations.allowed_image_hosts")
+    )
+    if not isinstance(title_suffix, str):
+        raise TransformError("destinations.title_suffix must be a string")
+    class_keys = (
+        "container_class",
+        "title_class",
+        "title_text_class",
+        "text_class",
+        "image_class",
+    )
+    classes = {key: card_spec.get(key) for key in class_keys}
+    if not all(isinstance(value, str) and value for value in classes.values()):
+        raise TransformError("card class selectors must be nonempty strings")
+    source_markers = _string_list(card_spec.get("source_markers"), "card.source_markers")
+    hrefs_per_card = _expected_exact(
+        card_spec.get("expected_hrefs_per_card"),
+        "card.expected_hrefs_per_card",
+    )
+    expected_landing = _expected_exact(expected.get("landing_pages"), "expected.landing_pages")
+    expected_cards = _expected_exact(expected.get("cards"), "expected.cards")
+    expected_destinations = _expected_exact(expected.get("destinations"), "expected.destinations")
+    if len(landing_paths) != expected_landing:
+        raise TransformError(
+            f"landing page count mismatch: expected {expected_landing}, observed {len(landing_paths)}"
+        )
+
+    destinations = selected_files(root, destination_includes, destination_excludes)
+    if len(destinations) != expected_destinations:
+        raise TransformError(
+            f"destination count mismatch: expected {expected_destinations}, observed {len(destinations)}"
+        )
+    route_map: dict[str, list[dict[str, str]]] = {}
+    inventory_by_source: dict[str, dict[str, str]] = {}
+    for path in destinations:
+        metadata = destination_metadata(
+            path,
+            root,
+            title_suffix=title_suffix,
+            allowed_image_hosts=allowed_image_hosts,
+        )
+        inventory_by_source[metadata["source_path"]] = metadata
+        for route in destination_routes(metadata["source_path"]):
+            route_map.setdefault(route, []).append(metadata)
+
+    changes: list[tuple[Path, bytes]] = []
+    inventory_used: dict[str, dict[str, str]] = {}
+    card_count = 0
+    updated_cards = 0
+    compliant_cards = 0
+    for relative in landing_paths:
+        path = root / PurePosixPath(relative)
+        if not path.is_file() or path.is_symlink():
+            raise TransformError(f"landing page is missing or prohibited: {relative}")
+        text, bom, raw = read_utf8(path)
+        parsed = parse_html(text)
+        cards = [
+            item
+            for item in parsed.elements
+            if item["tag"] == "div" and classes["container_class"] in item["classes"]
+        ]
+        edits: list[tuple[int, int, str]] = []
+        for card in cards:
+            card_count += 1
+            descendants = [
+                item
+                for item in parsed.elements
+                if card["start_tag_end"] <= item["start"] and item["end"] <= card["end_tag_start"]
+            ]
+            one_element(descendants, tag="div", class_name=classes["title_class"], label="card title")
+            title_text = one_element(
+                descendants,
+                tag="div",
+                class_name=classes["title_text_class"],
+                label="card title text",
+            )
+            body = one_element(
+                descendants, tag="div", class_name=classes["text_class"], label="card text"
+            )
+            image_box = one_element(
+                descendants, tag="div", class_name=classes["image_class"], label="card image"
+            )
+            images = [
+                item
+                for item in descendants
+                if item["tag"] == "img"
+                and image_box["start_tag_end"] <= item["start"]
+                and item["end"] <= image_box["end_tag_start"]
+            ]
+            if len(images) != 1:
+                raise TransformError(f"card image requires exactly one img; found {len(images)}")
+            candidate_anchors: list[tuple[dict[str, Any], str, dict[str, str]]] = []
+            for anchor in (item for item in descendants if item["tag"] == "a"):
+                href = anchor["attrs"].get("href", "")
+                split = urlsplit(href)
+                if split.scheme or split.netloc or not split.path.startswith("/"):
+                    continue
+                matches = route_map.get(split.path, [])
+                if len(matches) > 1:
+                    raise TransformError(f"card destination is ambiguous: {split.path}")
+                if matches:
+                    candidate_anchors.append((anchor, href, matches[0]))
+            sources = {item[2]["source_path"] for item in candidate_anchors}
+            if len(sources) != 1 or len(candidate_anchors) != hrefs_per_card:
+                raise TransformError(
+                    "card must link one destination exactly "
+                    f"{hrefs_per_card} times; found {len(candidate_anchors)} links to {len(sources)} destinations"
+                )
+            metadata = candidate_anchors[0][2]
+            inventory_used[metadata["source_path"]] = metadata
+            title_inner = text[title_text["start_tag_end"]:title_text["end_tag_start"]]
+            body_inner = text[body["start_tag_end"]:body["end_tag_start"]]
+            if "<" in title_inner or "<" in body_inner:
+                raise TransformError("card title text and card text must not contain nested markup")
+            image_attrs = images[0]["attrs"]
+            desired = (
+                html.unescape(title_inner.strip()) == metadata["card_title"]
+                and html.unescape(body_inner.strip()) == metadata["description"]
+                and image_attrs.get("src") == metadata["image_url"]
+                and html.unescape(image_attrs.get("alt", "")) == metadata["card_title"]
+                and html.unescape(image_attrs.get("title", "")) == metadata["card_title"]
+            )
+            if desired:
+                compliant_cards += 1
+                continue
+            source_surface = "\n".join((title_inner, body_inner, images[0]["raw_tag"]))
+            if not any(marker in source_surface for marker in source_markers):
+                raise TransformError(
+                    "card differs from destination metadata without an approved source marker: "
+                    f"{metadata['source_path']}"
+                )
+            updated_cards += 1
+            edits.append(
+                (
+                    title_text["start_tag_end"],
+                    title_text["end_tag_start"],
+                    html.escape(metadata["card_title"], quote=False),
+                )
+            )
+            edits.append(
+                (
+                    body["start_tag_end"],
+                    body["end_tag_start"],
+                    html.escape(metadata["description"], quote=False),
+                )
+            )
+            image_tag = images[0]["raw_tag"]
+            image_tag = _set_attribute(image_tag, "src", metadata["image_url"])
+            image_tag = _set_attribute(image_tag, "alt", metadata["card_title"])
+            image_tag = _set_attribute(image_tag, "title", metadata["card_title"])
+            edits.append((images[0]["start"], images[0]["start_tag_end"], image_tag))
+            for anchor, href, _ in candidate_anchors:
+                canonical = _set_attribute(anchor["raw_tag"], "href", href)
+                edits.append((anchor["start"], anchor["start_tag_end"], canonical))
+        transformed = _apply_edits(text, edits)
+        payload = encode_utf8(transformed, bom)
+        if payload != raw:
+            changes.append((path, payload))
+
+    if card_count != expected_cards:
+        raise TransformError(f"card count mismatch: expected {expected_cards}, observed {card_count}")
+    if len(inventory_used) != expected_destinations:
+        raise TransformError(
+            "used destination count mismatch: "
+            f"expected {expected_destinations}, observed {len(inventory_used)}"
+        )
+    inventory = []
+    for source_path in sorted(inventory_used):
+        metadata = inventory_by_source[source_path]
+        route = sorted(destination_routes(source_path), key=lambda value: (len(value), value))[0]
+        inventory.append({"route": route, **metadata})
+    return changes, {
+        "mode": "metadata-cards",
+        "landing_pages": len(landing_paths),
+        "cards": card_count,
+        "destinations": len(inventory),
+        "updated_cards": updated_cards,
+        "already_compliant_cards": compliant_cards,
+    }, inventory
+
+
 def transform_contact_repository(root: Path, spec: dict[str, Any]) -> tuple[list[tuple[Path, bytes]], dict[str, Any]]:
     includes = _string_list(spec.get("include", ["**/*.html"]), "include")
     excludes = _string_list(
@@ -522,8 +901,12 @@ def command_transform(args: argparse.Namespace) -> int:
     spec = _json_object(args.spec_json, "spec_json")
     if args.mode == "contact-routes":
         changes, summary = transform_contact_repository(root, spec)
-    else:
+        inventory = None
+    elif args.mode == "exact":
         changes, summary = transform_exact_repository(root, spec)
+        inventory = None
+    else:
+        changes, summary, inventory = transform_metadata_cards_repository(root, spec)
     for path, payload in changes:
         write_atomic(path, payload)
     changed_paths = [path for path, _ in changes]
@@ -533,6 +916,18 @@ def command_transform(args: argparse.Namespace) -> int:
     if args.summary_file:
         Path(args.summary_file).write_text(
             json.dumps(summary, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    if args.inventory_json:
+        Path(args.inventory_json).write_text(
+            json.dumps(inventory or [], ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    if args.inventory_markdown:
+        Path(args.inventory_markdown).write_text(
+            markdown_inventory(inventory or []),
             encoding="utf-8",
             newline="\n",
         )
@@ -556,10 +951,16 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     transform = subparsers.add_parser("transform")
     transform.add_argument("--root", required=True)
-    transform.add_argument("--mode", choices=("contact-routes", "exact"), required=True)
+    transform.add_argument(
+        "--mode",
+        choices=("contact-routes", "exact", "metadata-cards"),
+        required=True,
+    )
     transform.add_argument("--spec-json", required=True)
     transform.add_argument("--paths-file", required=True)
     transform.add_argument("--summary-file")
+    transform.add_argument("--inventory-json")
+    transform.add_argument("--inventory-markdown")
     transform.add_argument("--github-output")
     transform.set_defaults(func=command_transform)
     verify = subparsers.add_parser("verify-git")

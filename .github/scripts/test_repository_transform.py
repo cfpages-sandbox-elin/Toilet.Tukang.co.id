@@ -168,12 +168,170 @@ class ExactTests(unittest.TestCase):
                 })
 
 
+class MetadataCardTests(unittest.TestCase):
+    CARD = (
+        '<div class="ue_post_grid_item">'
+        '<a class="image-link" href="/toilet-portable-kupang">'
+        '<div class="uc_post_image"><img post-id="7" src="https://old.example/old.jpg" '
+        'alt="Wrong" title="Wrong"><div class="overlay"></div></div></a>'
+        '<div class="uc_post_title"><a href="/toilet-portable-kupang">'
+        '<div class="ue_p_title">Wrong title</div></a></div>'
+        '<div class="uc_post_text">Wrong text</div>'
+        '<a class="detail" href="/toilet-portable-kupang">Detail</a>'
+        '</div>'
+    )
+
+    @staticmethod
+    def spec():
+        return {
+            "landing_pages": ["portable/index.html"],
+            "destinations": {
+                "include": ["toilet-portable-*.html"],
+                "exclude": [".git/**"],
+                "title_suffix": " - Example",
+                "allowed_image_hosts": ["blogger.googleusercontent.com"],
+            },
+            "card": {
+                "container_class": "ue_post_grid_item",
+                "title_class": "uc_post_title",
+                "title_text_class": "ue_p_title",
+                "text_class": "uc_post_text",
+                "image_class": "uc_post_image",
+                "expected_hrefs_per_card": 3,
+                "source_markers": ["Wrong"],
+            },
+            "expected": {"landing_pages": 1, "cards": 1, "destinations": 1},
+        }
+
+    @staticmethod
+    def destination(description_tag=None):
+        description = (
+            description_tag
+            if description_tag is not None
+            else '<meta name="description" content="Portable &amp; clean">'
+        )
+        return (
+            "<html><head><title>Sewa Toilet Portable di Kupang - Example</title>"
+            f"{description}"
+            '<meta property="og:image" '
+            'content="https://blogger.googleusercontent.com/img/toilet.jpg">'
+            "</head><body>keep</body></html>"
+        )
+
+    def root(self):
+        context = tempfile.TemporaryDirectory()
+        root = Path(context.name)
+        (root / ".git").mkdir()
+        (root / "portable").mkdir()
+        (root / "portable" / "index.html").write_text(
+            f"<html><body>before{self.CARD}after</body></html>",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "toilet-portable-kupang.html").write_text(
+            self.destination(),
+            encoding="utf-8",
+            newline="\n",
+        )
+        return context, root
+
+    def test_metadata_cards_updates_complete_card_and_is_idempotent(self):
+        context, root = self.root()
+        with context:
+            changes, summary, inventory = MODULE.transform_metadata_cards_repository(
+                root, self.spec()
+            )
+            self.assertEqual(summary["cards"], 1)
+            self.assertEqual(len(inventory), 1)
+            self.assertEqual([path.relative_to(root).as_posix() for path, _ in changes], ["portable/index.html"])
+            transformed = changes[0][1].decode("utf-8")
+            self.assertIn("before", transformed)
+            self.assertIn("after", transformed)
+            self.assertIn("Sewa Toilet Portable di Kupang", transformed)
+            self.assertIn("Portable &amp; clean", transformed)
+            self.assertIn("https://blogger.googleusercontent.com/img/toilet.jpg", transformed)
+            self.assertIn('alt="Sewa Toilet Portable di Kupang"', transformed)
+            self.assertIn('title="Sewa Toilet Portable di Kupang"', transformed)
+            self.assertIn('post-id="7"', transformed)
+            self.assertEqual(transformed.count('href="/toilet-portable-kupang"'), 3)
+            (root / "portable" / "index.html").write_bytes(changes[0][1])
+            second, _, second_inventory = MODULE.transform_metadata_cards_repository(
+                root, self.spec()
+            )
+            self.assertEqual(second, [])
+            self.assertEqual(second_inventory, inventory)
+
+    def test_missing_destination_description_fails_before_write(self):
+        context, root = self.root()
+        with context:
+            landing = root / "portable" / "index.html"
+            original = landing.read_bytes()
+            (root / "toilet-portable-kupang.html").write_text(
+                self.destination(""),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(MODULE.TransformError, "meta description"):
+                MODULE.transform_metadata_cards_repository(root, self.spec())
+            self.assertEqual(landing.read_bytes(), original)
+
+    def test_incomplete_card_link_set_fails_closed(self):
+        context, root = self.root()
+        with context:
+            landing = root / "portable" / "index.html"
+            original = landing.read_text(encoding="utf-8")
+            landing.write_text(
+                original.replace(
+                    '<a class="detail" href="/toilet-portable-kupang">Detail</a>',
+                    "",
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(MODULE.TransformError, "exactly 3 times"):
+                MODULE.transform_metadata_cards_repository(root, self.spec())
+
+    def test_noncompliant_card_without_source_marker_fails_closed(self):
+        context, root = self.root()
+        with context:
+            landing = root / "portable" / "index.html"
+            landing.write_text(
+                landing.read_text(encoding="utf-8").replace("Wrong", "Other"),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(MODULE.TransformError, "approved source marker"):
+                MODULE.transform_metadata_cards_repository(root, self.spec())
+
+    def test_directory_index_destination_route_is_supported(self):
+        context, root = self.root()
+        with context:
+            nested = root / "portable-city" / "index.html"
+            nested.parent.mkdir()
+            nested.write_text(self.destination(), encoding="utf-8")
+            (root / "toilet-portable-kupang.html").unlink()
+            landing = root / "portable" / "index.html"
+            landing.write_text(
+                landing.read_text(encoding="utf-8").replace(
+                    "/toilet-portable-kupang",
+                    "/portable-city/",
+                ),
+                encoding="utf-8",
+            )
+            spec = self.spec()
+            spec["destinations"]["include"] = ["portable-city/index.html"]
+            changes, summary, inventory = MODULE.transform_metadata_cards_repository(root, spec)
+            self.assertEqual(summary["destinations"], 1)
+            self.assertEqual(inventory[0]["source_path"], "portable-city/index.html")
+            self.assertIn('href="/portable-city/"', changes[0][1].decode("utf-8"))
+
+
 class WorkflowTests(unittest.TestCase):
-    def test_exact_mode_skips_legacy_whitespace_gate(self):
+    def test_byte_preserving_modes_skip_legacy_whitespace_gate(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("TRANSFORM_MODE: ${{ inputs.mode }}", workflow)
-        self.assertIn('if [[ "$TRANSFORM_MODE" != "exact" ]]; then', workflow)
+        self.assertIn('if [[ "$TRANSFORM_MODE" == "contact-routes" ]]; then', workflow)
         self.assertIn("git diff --cached --check", workflow)
+        self.assertIn("- metadata-cards", workflow)
+        self.assertIn("--inventory-markdown", workflow)
+        self.assertIn("actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02", workflow)
 
 
 if __name__ == "__main__":

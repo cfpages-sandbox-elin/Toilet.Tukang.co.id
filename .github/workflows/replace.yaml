@@ -10,6 +10,7 @@ on:
         options:
           - contact-routes
           - exact
+          - metadata-cards
       spec_json:
         description: Strict JSON specification for the selected mode
         required: true
@@ -80,6 +81,8 @@ jobs:
           TRANSFORM_SPEC_JSON: ${{ inputs.spec_json }}
           TRANSFORM_PATHS_FILE: ${{ runner.temp }}/repository-transform-paths.nul
           TRANSFORM_SUMMARY_FILE: ${{ runner.temp }}/repository-transform-summary.json
+          TRANSFORM_INVENTORY_JSON: ${{ runner.temp }}/repository-transform-inventory.json
+          TRANSFORM_INVENTORY_MD: ${{ runner.temp }}/repository-transform-inventory.md
         run: |
           python .github/scripts/repository_transform.py transform \
             --root "$GITHUB_WORKSPACE" \
@@ -87,7 +90,21 @@ jobs:
             --spec-json "$TRANSFORM_SPEC_JSON" \
             --paths-file "$TRANSFORM_PATHS_FILE" \
             --summary-file "$TRANSFORM_SUMMARY_FILE" \
+            --inventory-json "$TRANSFORM_INVENTORY_JSON" \
+            --inventory-markdown "$TRANSFORM_INVENTORY_MD" \
             --github-output "$GITHUB_OUTPUT"
+
+      - name: Upload destination metadata inventory
+        if: inputs.mode == 'metadata-cards' && steps.transform.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: repository-transform-metadata-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/repository-transform-summary.json
+            ${{ runner.temp }}/repository-transform-inventory.json
+            ${{ runner.temp }}/repository-transform-inventory.md
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Verify exact unstaged boundary
         if: steps.transform.outputs.changed == 'true'
@@ -106,7 +123,7 @@ jobs:
           TRANSFORM_PATHS_FILE: ${{ runner.temp }}/repository-transform-paths.nul
         run: |
           git add --pathspec-from-file="$TRANSFORM_PATHS_FILE" --pathspec-file-nul
-          if [[ "$TRANSFORM_MODE" != "exact" ]]; then
+          if [[ "$TRANSFORM_MODE" == "contact-routes" ]]; then
             git diff --cached --check
           fi
 
