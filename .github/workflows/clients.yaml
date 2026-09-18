@@ -22,11 +22,9 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
-      SUMMARY_PATH: ${{ runner.temp }}/clients-summary.json
-      CHANGED_PATHS: ${{ runner.temp }}/clients-changed-paths
-      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (github.ref_type != 'branch' || inputs.dry_run != false) }}
+      INPUT_DRY_RUN: ${{ inputs.dry_run }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -42,28 +40,36 @@ jobs:
         id: update
         run: |
           args=()
-          if [[ "$DRY_RUN" == "true" ]]; then
+          dry_run=false
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]] &&
+             git show "${{ github.event.before }}:.clients" > "$RUNNER_TEMP/clients-before" 2>/dev/null; then
+            args+=(--previous-clients "$RUNNER_TEMP/clients-before")
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]] &&
+             { [[ "$GITHUB_REF_TYPE" != "branch" ]] || [[ "$INPUT_DRY_RUN" == "true" ]]; }; then
             args+=(--dry-run)
+            dry_run=true
           fi
           python -B .github/scripts/update_clients.py \
             --repo-root . \
             --clients .clients \
-            --summary "$SUMMARY_PATH" \
-            --paths-file "$CHANGED_PATHS" \
+            --summary "$RUNNER_TEMP/clients-summary.json" \
+            --paths-file "$RUNNER_TEMP/clients-changed-paths" \
             --github-output "$GITHUB_OUTPUT" \
             "${args[@]}"
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
       - name: Verify exact Git scope
-        if: steps.update.outputs.changed == 'true' && env.DRY_RUN == 'false'
+        if: steps.update.outputs.changed == 'true' && steps.update.outputs.dry_run == 'false'
         run: |
           python -B .github/scripts/update_clients.py \
             --repo-root . \
-            --paths-file "$CHANGED_PATHS" \
+            --paths-file "$RUNNER_TEMP/clients-changed-paths" \
             --verify-git
       - name: Commit and push exact changed paths
-        if: steps.update.outputs.changed == 'true' && env.DRY_RUN == 'false'
+        if: steps.update.outputs.changed == 'true' && steps.update.outputs.dry_run == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add --literal-pathspecs --pathspec-from-file="$CHANGED_PATHS" --pathspec-file-nul
+          git --literal-pathspecs add --pathspec-from-file="$RUNNER_TEMP/clients-changed-paths" --pathspec-file-nul
           git commit --quiet -m "Update clients (${GITHUB_REF_NAME})"
           git push

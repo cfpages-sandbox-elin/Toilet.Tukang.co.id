@@ -11,9 +11,9 @@ import stat
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 
 class ClientsError(Exception):
@@ -24,6 +24,7 @@ class ClientsError(Exception):
 class Filter:
     clauses: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...]
     simple: tuple[str, ...] = ()
+    basename: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class Client:
 
 FILTER_ATOM = r"-?[a-z0-9][a-z0-9._-]*"
 SIMPLE_FILTER_RE = re.compile(rf"{FILTER_ATOM}(?:,{FILTER_ATOM})*\Z")
+BASENAME_FILTER_RE = re.compile(rf"basename:{FILTER_ATOM}(?:,{FILTER_ATOM})*\Z")
 CATEGORY_FILTER_RE = re.compile(
     rf"{FILTER_ATOM}(?:,{FILTER_ATOM})*:{FILTER_ATOM}(?:,{FILTER_ATOM})*"
     rf"(?:;{FILTER_ATOM}(?:,{FILTER_ATOM})*:{FILTER_ATOM}(?:,{FILTER_ATOM})*)*\Z"
@@ -46,8 +48,22 @@ CATEGORY_FILTER_RE = re.compile(
 PHONE_RE = re.compile(r"\+?[0-9][0-9 ()+.\-]{6,}[0-9]\Z")
 ADDRESS_RE = re.compile(r"(?:Jl\.|Jalan|Ruko|Perumahan)\s+[^<\r\n]+")
 DIV_RE = re.compile(
-    r"<div\b(?P<attrs>[^>]*\bclass\s*=\s*(?P<q>[\"'])(?P<class>.*?)(?P=q)[^>]*)>"
+    r"<div\b(?P<attrs>[^>]*\bclass\s*=\s*(?P<q>[\"'])"
+    r"(?P<class>[^\"']*\b(?:whatsapp-floating|sms-floating|tlp-floating)\b[^\"']*)"
+    r"(?P=q)[^>]*)>"
     r"(?P<body>.*?)</div\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+NAV_RE = re.compile(
+    r"<nav\b(?P<attrs>[^>]*)>(?P<body>.*?)</nav\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+CLASS_ATTR_RE = re.compile(
+    r"\bclass\s*=\s*([\"'])(.*?)\1", re.IGNORECASE | re.DOTALL
+)
+LI_RE = re.compile(r"<li\b(?P<attrs>[^>]*)>(?P<body>.*?)</li\s*>", re.IGNORECASE | re.DOTALL)
+ANCHOR_RE = re.compile(
+    r"<a\b(?P<attrs>[^>]*)>(?P<body>.*?)</a\s*>",
     re.IGNORECASE | re.DOTALL,
 )
 HREF_RE = re.compile(r"\bhref\s*=\s*([\"'])(.*?)\1", re.IGNORECASE | re.DOTALL)
@@ -75,9 +91,10 @@ def _route_role(value: str) -> str | None:
         scheme, host = _valid_url(value)
     except ValueError:
         return None
-    lower = value.casefold()
+    decoded = unquote(value)
+    lower = decoded.casefold()
     whatsapp = (
-        "💬" in value
+        "💬" in decoded
         or "whatsapp" in lower
         or host == "wa.me"
         or host.endswith(".whatsapp.com")
@@ -107,6 +124,8 @@ def _phone(value: str) -> bool:
 
 def _parse_filter(value: str) -> Filter | None:
     lower = value.casefold()
+    if BASENAME_FILTER_RE.fullmatch(lower):
+        return Filter((), (), tuple(lower.removeprefix("basename:").split(",")))
     if CATEGORY_FILTER_RE.fullmatch(lower):
         clauses = []
         for clause in lower.split(";"):
@@ -189,7 +208,13 @@ def parse_clients(path: Path) -> list[Client]:
     return clients
 
 
+def _filter_path(path: str) -> str:
+    """Normalize the complete relative HTML path used by every filter."""
+    return str(path).replace("\\", "/").casefold()
+
+
 def _terms_match(terms: tuple[str, ...], path: str) -> bool:
+    path = _filter_path(path)
     positives = tuple(term for term in terms if not term.startswith("-"))
     negatives = tuple(term[1:] for term in terms if term.startswith("-"))
     return (not positives or any(term in path for term in positives)) and not any(
@@ -198,7 +223,9 @@ def _terms_match(terms: tuple[str, ...], path: str) -> bool:
 
 
 def _filter_matches(rule: Filter, path: str) -> bool:
-    path = path.casefold()
+    path = _filter_path(path)
+    if rule.basename:
+        return _terms_match(rule.basename, path.rsplit("/", 1)[-1])
     if rule.simple:
         return _terms_match(rule.simple, path)
     for categories, cities in rule.clauses:
@@ -254,29 +281,121 @@ def _transform(text: str, client: Client) -> tuple[bool, str]:
         classes = set(match.group("class").casefold().split())
         markers = classes & MARKERS
         if markers:
-            blocks.append((markers, match.group("body")))
+            blocks.append((markers, match.group("body"), match))
     if not blocks:
-        return False, text
+        nav_matches = []
+        for nav in NAV_RE.finditer(text):
+            class_match = CLASS_ATTR_RE.search(nav.group("attrs"))
+            classes = set(class_match.group(2).casefold().split()) if class_match else set()
+            if "menu-info-kontak-container" in classes:
+                nav_matches.append(nav)
+        if len(nav_matches) > 1:
+            raise ClientsError("matched HTML has multiple contact nav containers")
+        if not nav_matches:
+            return False, text
+        if client.address is not None:
+            raise ClientsError("fallback contact cannot include address")
+
+        nav = nav_matches[0]
+        recognized: list[tuple[re.Match[str], str]] = []
+        for item in LI_RE.finditer(nav.group("body")):
+            anchors = list(ANCHOR_RE.finditer(item.group("body")))
+            anchor_openings = re.findall(r"<a\b", item.group("body"), re.IGNORECASE)
+            visible = re.sub(r"<[^>]*>", "", item.group("body"))
+            displays = DISPLAY_RE.findall(visible)
+            if not displays:
+                continue
+            if len(anchor_openings) != 1 or len(anchors) != 1 or len(displays) != 1:
+                raise ClientsError("fallback contact item must contain one anchor and one displayed phone/name")
+            anchor = anchors[0]
+            hrefs = HREF_RE.findall(anchor.group("attrs"))
+            if len(hrefs) != 1:
+                raise ClientsError("fallback contact item has ambiguous anchor destination")
+            recognized.append((item, displays[0]))
+        if not recognized:
+            return False, text
+
+        body = nav.group("body")
+        first_item, display = recognized[0]
+        first_anchor = next(ANCHOR_RE.finditer(first_item.group("body")))
+        anchor_text = first_anchor.group(0)
+        href_match = HREF_RE.search(first_anchor.group("attrs"))
+        assert href_match is not None
+        anchor_text = anchor_text.replace(
+            href_match.group(2), client.whatsapp, 1
+        ).replace(display, f"{client.phone} ({client.name})", 1)
+        first_body = first_item.group("body").replace(first_anchor.group(0), anchor_text, 1)
+        body = body.replace(first_item.group(0), first_item.group(0).replace(first_item.group("body"), first_body, 1), 1)
+        for item, _ in recognized[1:]:
+            body = body.replace(item.group(0), "", 1)
+        result = text[: nav.start()] + nav.group(0).replace(nav.group("body"), body, 1) + text[nav.end() :]
+        return True, result
+
+    empty_image_blocks = all(
+        not HREF_RE.search(body)
+        and not DISPLAY_RE.search(re.sub(r"<[^>]*>", "", body))
+        and len(re.findall(r"<img\b", body, re.IGNORECASE)) == 1
+        for _, body, _ in blocks
+    )
+    if empty_image_blocks:
+        has_whatsapp = any(markers & {"whatsapp-floating", "sms-floating"} for markers, _, _ in blocks)
+        has_telephone = any("tlp-floating" in markers for markers, _, _ in blocks)
+        if not has_whatsapp or not has_telephone:
+            raise ClientsError("matched HTML has incomplete empty-image contact blocks")
+        result = text
+        for markers, body, match in reversed(blocks):
+            whatsapp_marker = bool(markers & {"whatsapp-floating", "sms-floating"})
+            telephone_marker = "tlp-floating" in markers
+            if whatsapp_marker == telephone_marker:
+                raise ClientsError("matched HTML has ambiguous empty-image contact block")
+            route = client.whatsapp if whatsapp_marker else client.telephone
+            inner = f'<a href="{route}">{body}<span>{client.phone} ({client.name})</span></a>'
+            replacement = match.group(0).replace(body, inner, 1)
+            result = result[: match.start()] + replacement + result[match.end() :]
+        if client.address is not None:
+            old_address = _one(ADDRESS_RE.findall(result), "address")
+            result = result.replace(old_address, client.address, 1)
+        return True, result
 
     displays: list[str] = []
     whatsapp: list[str] = []
     telephone: list[str] = []
-    for markers, body in blocks:
-        for span in SPAN_RE.findall(body):
-            displays.extend(DISPLAY_RE.findall(span))
+    whatsapp_duplicates_safe = True
+    telephone_duplicates_safe = True
+    for markers, body, _ in blocks:
+        block_displays = [
+            display
+            for span in SPAN_RE.findall(body)
+            for display in DISPLAY_RE.findall(span)
+        ]
+        if not block_displays:
+            block_displays = DISPLAY_RE.findall(re.sub(r"<[^>]*>", "", body))
+        displays.extend(block_displays)
         hrefs = [href for _, href in HREF_RE.findall(body)]
         if markers & {"whatsapp-floating", "sms-floating"}:
             whatsapp.extend(hrefs)
+            whatsapp_duplicates_safe &= len(hrefs) == 1 and bool(block_displays)
         if "tlp-floating" in markers:
             telephone.extend(hrefs)
+            telephone_duplicates_safe &= len(hrefs) == 1 and bool(block_displays)
 
-    old_display = _one(displays, "displayed phone/name")
-    old_whatsapp = _one(whatsapp, "WhatsApp route")
-    old_telephone = _one(telephone, "telephone route")
+    old_displays = tuple(dict.fromkeys(displays))
+    if not old_displays:
+        raise ClientsError("matched HTML is missing displayed phone/name")
+    old_whatsapp = tuple(dict.fromkeys(whatsapp))
+    old_telephone = tuple(dict.fromkeys(telephone))
+    if not old_whatsapp:
+        raise ClientsError("matched HTML is missing WhatsApp route")
+    if not old_telephone:
+        raise ClientsError("matched HTML is missing telephone route")
+    if len(old_whatsapp) > 1 and not whatsapp_duplicates_safe:
+        raise ClientsError("matched HTML has ambiguous WhatsApp route")
+    if len(old_telephone) > 1 and not telephone_duplicates_safe:
+        raise ClientsError("matched HTML has ambiguous telephone route")
     replacements = [
-        (old_display, f"{client.phone} ({client.name})"),
-        (old_whatsapp, client.whatsapp),
-        (old_telephone, client.telephone),
+        *((old, f"{client.phone} ({client.name})") for old in old_displays),
+        *((old, client.whatsapp) for old in old_whatsapp),
+        *((old, client.telephone) for old in old_telephone),
     ]
     if client.address is not None:
         old_address = _one(ADDRESS_RE.findall(text), "address")
@@ -315,9 +434,16 @@ def _relative(path: Path, root: Path) -> str:
         raise ClientsError("path escaped repository root") from None
 
 
-def update(root: Path, clients_path: Path, dry_run: bool) -> dict[str, object]:
+def update(
+    root: Path,
+    clients_path: Path,
+    dry_run: bool,
+    only_clients: set[Client] | None = None,
+) -> dict[str, object]:
     root = root.resolve()
     clients = parse_clients(clients_path)
+    if only_clients is not None:
+        clients = [client for client in clients if client in only_clients]
     unfiltered = [client for client in clients if client.filter is None]
     if len(unfiltered) > 1:
         raise ClientsError("multiple unfiltered clients are ambiguous")
@@ -424,6 +550,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--summary", type=Path)
     parser.add_argument("--paths-file", type=Path, required=True)
     parser.add_argument("--github-output", type=Path)
+    parser.add_argument("--previous-clients", type=Path)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--verify-git", action="store_true")
     args = parser.parse_args(argv)
@@ -435,7 +562,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.clients is None or args.summary is None:
             parser.error("--clients and --summary are required for update mode")
         clients = args.clients if args.clients.is_absolute() else root / args.clients
-        summary = update(root, clients, args.dry_run)
+        only_clients = None
+        if args.previous_clients is not None:
+            previous = {
+                replace(client, row=0, filter=None)
+                for client in parse_clients(args.previous_clients)
+            }
+            only_clients = {
+                client
+                for client in parse_clients(clients)
+                if replace(client, row=0, filter=None) not in previous
+            }
+        summary = update(root, clients, args.dry_run, only_clients)
         _write_outputs(summary, args.summary, args.paths_file)
         if args.github_output is not None:
             with args.github_output.open("a", encoding="utf-8", newline="\n") as stream:
