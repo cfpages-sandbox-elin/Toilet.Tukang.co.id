@@ -32,11 +32,12 @@ class Filter:
 class Client:
     row: int
     name: str
-    phone: str
-    whatsapp: str
-    telephone: str
+    phone: str | None
+    whatsapp: str | None
+    telephone: str | None
     filter: Filter | None
     address: str | None
+    derive_routes: bool = False
 
 
 FILTER_ATOM = r"-?[a-z0-9][a-z0-9._-]*"
@@ -161,8 +162,14 @@ def parse_clients(path: Path) -> list[Client]:
         if any(not value for value in values):
             raise _error(row, "empty field")
         roles: dict[str, str] = {}
+        derive_routes = False
         remaining = []
         for value in values:
+            if value.casefold() == "derive-routes":
+                if derive_routes:
+                    raise _error(row, "duplicate derive-routes option")
+                derive_routes = True
+                continue
             route = _route_role(value)
             if route == "ambiguous":
                 raise _error(row, "ambiguous route")
@@ -195,18 +202,23 @@ def parse_clients(path: Path) -> list[Client]:
                 names.append(value)
         if len(names) != 1:
             raise _error(row, "missing name" if not names else "extra unclassified field")
-        for required in ("phone", "whatsapp", "telephone"):
-            if required not in roles:
-                raise _error(row, f"missing {required}")
+        if derive_routes:
+            if roles:
+                raise _error(row, "derive-routes cannot include contact values")
+        else:
+            for required in ("phone", "whatsapp", "telephone"):
+                if required not in roles:
+                    raise _error(row, f"missing {required}")
         clients.append(
             Client(
                 row,
                 names[0],
-                roles["phone"],
-                roles["whatsapp"],
-                roles["telephone"],
+                roles.get("phone"),
+                roles.get("whatsapp"),
+                roles.get("telephone"),
                 filter_value,
                 roles.get("address"),
+                derive_routes,
             )
         )
     return clients
@@ -291,7 +303,51 @@ def _one(values: list[str], role: str, required: bool = True) -> str | None:
     return unique[0]
 
 
+def _derive_route(display: str, whatsapp: bool) -> str:
+    phone = display.rsplit("(", 1)[0].strip()
+    digits = re.sub(r"\D", "", phone)
+    if digits.startswith("0"):
+        digits = "62" + digits[1:]
+    if not digits.startswith("62") or not 8 <= len(digits) <= 16:
+        raise ClientsError("matched HTML displayed phone is not an Indonesian international number")
+    return f"https://wa.me/{digits}" if whatsapp else f"tel:+{digits}"
+
+
+def _derive_routes_from_display(text: str) -> tuple[bool, str]:
+    result = text
+    has_whatsapp = False
+    has_telephone = False
+    for anchor in reversed(list(ANCHOR_RE.finditer(text))):
+        hrefs = list(HREF_RE.finditer(anchor.group(0)))
+        if len(hrefs) != 1:
+            continue
+        href = hrefs[0]
+        try:
+            scheme, host = _valid_url(href.group(2))
+        except ValueError:
+            continue
+        whatsapp = host in {"what.sapp.my.id", "wa.me"}
+        telephone = host == "con.tact.my.id" or scheme == "tel"
+        if not whatsapp and not telephone:
+            continue
+        if whatsapp == telephone:
+            raise ClientsError("matched HTML has ambiguous contact route")
+        displays = DISPLAY_RE.findall(re.sub(r"<[^>]*>", "", anchor.group("body")))
+        if len(displays) != 1:
+            raise ClientsError("derive-routes contact link must contain one displayed phone/name")
+        route = _derive_route(displays[0], whatsapp)
+        replacement = anchor.group(0)[: href.start(2)] + route + anchor.group(0)[href.end(2) :]
+        result = result[: anchor.start()] + replacement + result[anchor.end() :]
+        has_whatsapp |= whatsapp
+        has_telephone |= telephone
+    if not has_whatsapp or not has_telephone:
+        raise ClientsError("derive-routes requires WhatsApp and telephone contact links")
+    return True, result
+
+
 def _transform(text: str, client: Client) -> tuple[bool, str]:
+    if client.derive_routes:
+        return _derive_routes_from_display(text)
     blocks = []
     for match in DIV_RE.finditer(text):
         classes = set(match.group("class").casefold().split())

@@ -137,6 +137,62 @@ class ClientsTests(unittest.TestCase):
         path.write_text(client().replace(NEW_WA, tracked), encoding="utf-8")
         self.assertEqual(MODULE.parse_clients(path)[0].whatsapp, tracked)
 
+    def test_derive_routes_preserves_each_displayed_contact(self):
+        whatsapp_display = "0812 3456 7890 (Ketut WhatsApp)"
+        telephone_display = "62813 7654 3210 (Ketut Telepon)"
+        content = (
+            f'<a href="https://what.sapp.my.id/legacy-2"><span>{telephone_display}</span></a>'
+            f'<a href="https://con.tact.my.id/legacy-2"><span>{whatsapp_display}</span></a>'
+            '<div class="whatsapp-floating">'
+            f'<a href="https://what.sapp.my.id/legacy"><span>{whatsapp_display}</span></a>'
+            "</div>"
+            '<div class="tlp-floating">'
+            f'<a href="https://con.tact.my.id/legacy"><span>{telephone_display}</span></a>'
+            "</div>"
+        )
+        target = self.write_fixture(content=content)
+        (self.root / ".clients").write_text("Ketut | derive-routes\n", encoding="utf-8")
+
+        summary = MODULE.update(self.root, self.root / ".clients", False)
+        changed = target.read_text(encoding="utf-8")
+        self.assertEqual(summary["changed_count"], 1)
+        self.assertIn('href="https://wa.me/6281234567890"', changed)
+        self.assertIn('href="tel:+6281376543210"', changed)
+        self.assertIn('href="https://wa.me/6281376543210"', changed)
+        self.assertIn('href="tel:+6281234567890"', changed)
+        self.assertNotIn("what.sapp.my.id", changed)
+        self.assertNotIn("con.tact.my.id", changed)
+        self.assertIn(whatsapp_display, changed)
+        self.assertIn(telephone_display, changed)
+        self.assertEqual(MODULE.update(self.root, self.root / ".clients", False)["changed_count"], 0)
+
+    def test_derive_routes_rejects_ambiguous_block_before_write(self):
+        target = self.write_fixture(
+            content=(
+                html()
+                .replace(OLD_WA, "https://what.sapp.my.id/legacy")
+                .replace(OLD_TEL, "https://con.tact.my.id/legacy")
+                .replace(
+                    f"<span>{OLD_PHONE} ({OLD_NAME})</span>",
+                    f"<span>{OLD_PHONE} ({OLD_NAME})</span><span>0812 3456 7890 (Ketut)</span>",
+                    1,
+                )
+            )
+        )
+        original = target.read_bytes()
+        (self.root / ".clients").write_text("Ketut | derive-routes\n", encoding="utf-8")
+
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("one displayed phone/name", result.stderr)
+        self.assertEqual(target.read_bytes(), original)
+
+    def test_derive_routes_rejects_explicit_contact_values(self):
+        path = self.root / ".clients"
+        path.write_text(client(["derive-routes"]), encoding="utf-8")
+        with self.assertRaisesRegex(MODULE.ClientsError, "cannot include contact values"):
+            MODULE.parse_clients(path)
+
     def test_nested_contact_blocks_are_recognized(self):
         alternate = "0811 1111 1111 (Other Fixture)"
         target = self.write_fixture(
